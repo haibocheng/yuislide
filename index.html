@@ -2,6 +2,8 @@
 <html lang="zh">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+	<meta name="apple-mobile-web-app-capable" content="yes">  
 	
 	<title>YUI Slide | by jayli</title>
 	
@@ -79,9 +81,10 @@
 				autoSlide:true,
 				effect:'h-slide',
 				timeout:3000,
-				speed:1,
+				speed:0.7,
 				selectedClass:'current',
-				carousel:true
+				carousel:true,
+				touchmove:true
 			});
 			Y.one('#J_pre').on('click',function(e){
 				e.halt();
@@ -91,7 +94,6 @@
 				e.halt();
 				C.next();
 			});
-			// for touch
 
 		});
 		</script>
@@ -336,6 +338,12 @@ new Y.Slide('J_tab',{
 				<!--}}-->
 				<!--{{-->
 				<div class="expand">
+					<h4>touchmove (boolean)</h4>
+					<p>在触屏环境中，是否可以支持触屏移动行为，默认为false</p>
+				</div>
+				<!--}}-->
+				<!--{{-->
+				<div class="expand">
 					<h4>reverse (boolean)</h4>
 					<p>"播放下一个"和"播放上一个"对调，默认为false</p>
 				</div>
@@ -416,7 +424,33 @@ slide.on('switch',function(o){
 			<p>Enjoy yourself</p>
 			
 			<p>&copy; 2012 All rights reserved.</p>
+
+			<div>
+			
+			
+<!--comments{{-->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = 'yuislide'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function() {
+var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+<!--comments}}-->
+			
+			</div>
 		</div>
+
+
+
+
 	</div>
 	<!--fork me on github-->
 	<a href="http://github.com/jayli/YUISlide"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/edc6dae7a1079163caf7f17c60495bbb6d027c93/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub"></a>
