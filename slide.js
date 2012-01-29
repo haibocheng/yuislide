@@ -808,3 +808,4 @@ YUI.add('slide',function(Y){
 	Y.Slide = Slide;
 	
 },'',{requires:['node','anim']});
+
