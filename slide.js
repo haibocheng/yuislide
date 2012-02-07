@@ -30,6 +30,7 @@
  * <li>adaptive_fixed_width:(boolean) 屏幕是否根据控件的宽度改变重新渲染尺寸，默认为false，主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
  * <li>adaptive_fixed_height:(boolean) 屏幕是否根据控件的高度改变重新渲染尺寸，默认为false,主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
  * <li>adaptive_fixed_size:(boolean) 屏幕是否根据控件的宽度和高度改变重新渲染尺寸，默认为false,主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
+ * <li>adaptive_width:(function)，如果是百分比设置容器的宽度的话，需要指定这个函数，动态的得到可变化的宽度,默认为false
  * <li>reverse:(boolean) "播放下一个"和"播放上一个"对调，默认为false</li>
  * </ul>
  */
@@ -250,20 +251,6 @@ YUI.add('slide',function(Y){
             return this;
         },
 
-		// 重新渲染slide的尺寸，
-		// 根据goto到的index索引值渲染当前需要的长度和宽度
-		/*
-		renderSize:function(index){
-			var that = this;
-			//根据父容器的长宽，渲染子容器的长宽
-			if(that.spec_width){
-				that.resetSlideSize(index);
-			}else{
-				that.renderHeight().renderWidth();
-			}
-			return this;
-		},
-		*/
 
 		// 重新渲染slide内页(pannels)的宽度
 		renderWidth:function(){
@@ -318,7 +305,12 @@ YUI.add('slide',function(Y){
 				return;
 			}
 			//var width = that.spec_width();
-			var width = that.animcon.get('region').width;
+			
+			var width = that.adaptive_width ? 
+									that.adaptive_width():
+									that.animcon.get('region').width;
+
+
 			var height = that.pannels.item(index).get('region').height;
 			that.animcon.setStyles({
 				width:width+'px',
@@ -383,6 +375,11 @@ YUI.add('slide',function(Y){
 					if(that.autoSlide)that.play();
 				},'.'+that.contentClass+' div.'+that.pannelClass);
 			}
+
+			// 绑定窗口resize事件 
+			Y.on('resize',function(e){
+				that.fixSlideSize(that.current_tab);
+			},window);
 
 			//终端事件触屏事件绑定
 			if ('ontouchstart' in document.documentElement) {
@@ -548,7 +545,7 @@ YUI.add('slide',function(Y){
 			that.adaptive_fixed_width = (typeof o.adaptive_fixed_width == 'undefined' || o.adaptive_fixed_width == null)?false:o.adaptive_fixed_width;
 			that.adaptive_fixed_height = (typeof o.adaptive_fixed_height == 'undefined' || o.adaptive_fixed_height == null)?false:o.adaptive_fixed_height;
 			that.adaptive_fixed_size = (typeof o.adaptive_fixed_size == 'undefined' || o.adaptive_fixed_size == null)?false:o.adaptive_fixed_size;
-			that.spec_width = (typeof o.spec_width == 'undefined' || o.spec_width == null)?false:o.spec_width;
+			that.adaptive_width = (typeof o.adaptive_width == 'undefined' || o.adaptive_width == null)?false:o.adaptive_width;
 			that.id = that.id;
 			//构造参数
 			that.tabs = [];

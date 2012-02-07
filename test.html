@@ -84,7 +84,11 @@ body {
 			ease:'easeOut',
 			effect:'h-slide',
 			speed:0.5,
-			touchmove:true
+			touchmove:true,
+			adaptive_width:function(){
+				return document.body.offsetWidth;
+			}
+			
 		});
 	});
 	var getWidth = function(){

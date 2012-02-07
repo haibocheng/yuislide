@@ -362,6 +362,20 @@ new Y.Slide('J_tab',{
 				<!--}}-->
 				<!--{{-->
 				<div class="expand">
+					<h4>adaptive_width (function)</h4>
+					<p>当组件的宽度为百分比或者不固定时，在window resize的时候重新修正容器的宽度，是一个函数，返回一个数字，默认值为false</p>
+<pre class="js">
+var slide = new Y.Slide('J_tab',{
+	adaptive_width:function(){
+		return document.body.offsetWidth;
+	}
+});
+
+</pre>
+				</div>
+				<!--}}-->
+				<!--{{-->
+				<div class="expand">
 					<h4>reverse (boolean)</h4>
 					<p>"播放下一个"和"播放上一个"对调，默认为false</p>
 				</div>
