@@ -31,26 +31,14 @@ html {
 .t-tabview .tab-nav li.selected a:visited,
 .t-tabview .tab-nav li.selected a:hover {color:white;text-decoration:none;}
 .t-tabview .tab-nav li.selected {background-color:#2647A0;border:1px solid #2647A0;font-weight:bold;}
-.t-tabview .tab-content {border:1px solid gray;height:auto;width:100%;overflow:hidden;}
+.t-tabview .tab-content {height:auto;width:100%;overflow:hidden;position:relative;}
+.t-tabview .tab-content .tab-pannel {
+	float:left;
+}
+.hidden {
+	display:none
+}
 
-
-/*--标准--*/
-.t-slide {position:relative;text-align:left;width:600px;overflow:hidden;}
-.t-slide .tab-nav {position:absolute;right:10px;bottom:10px;border-color:#2647A0;z-index:2;}
-.t-slide .tab-nav li {float:left;}
-.t-slide .tab-nav li a {color:white;background-color:red;color:white;margin:5px;padding:2px 5px;}
-.t-slide .tab-nav li.selected a{background-color:#2647A0;font-weight:bold;}
-.t-slide .tab-content {width:600px;height:200px;overflow:hidden;z-index:1;}
-.t-slide .tab-content img {width:600px;height:200px;}
-
-/*--标准2-*/
-.t-slide-2 {position:relative;text-align:left;width:600px;overflow:hidden;}
-.t-slide-2 .tab-nav {position:absolute;right:10px;bottom:10px;border-color:#2647A0;z-index:2;}
-.t-slide-2 .tab-nav li {float:left;}
-.t-slide-2 .tab-nav li a {color:white;background-color:red;color:white;margin:5px;padding:2px 5px;}
-.t-slide-2 .tab-nav li.selected a{background-color:#2647A0;font-weight:bold;}
-.t-slide-2 .tab-content {width:100%;height:400px;overflow:hidden;z-index:1;}
-.t-slide-2 .tab-content img {width:600px;height:400px;}
 
 .bb {
 	background:gray;
@@ -73,8 +61,8 @@ body {
 	  </ul>
 	  <div class="tab-content">
 		<div class="tab-pannel"><p>Tab One ContentTab One ContentTab One ContentTab One Content</p></div>
-		<div class="tab-pannel"><p>Tab Two ContentTab Two ContentTab Two ContentTab Two ContentTab Two Content</p></div>
-		<div class="tab-pannel"><p>Tab Three ContentTab Three ContentTab Three ContentTab Three Contentaoi asdfo asjfo asjdflaskjfl;ask jfasl;fj alsfj asl;kfj asl;fj asl;fj asaldfjalkfjaslkfj asdfja slkfjasdlf jl</p></div>
+		<div class="tab-pannel hidden"><p>Tab Two ContentTab Two ContentTab Two ContentTab Two ContentTab Two Content</p></div>
+		<div class="tab-pannel hidden"><p>Tab Three ContentTab Three ContentTab Three ContentTab Three Contentaoi asdfo asjfo asjdflaskjfl;ask jfasl;fj alsfj asl;kfj asl;fj asl;fj asaldfjalkfjaslkfj asdfja slkfjasdlf jl</p></div>
 	  </div>
 	</div>
 
@@ -96,10 +84,7 @@ body {
 			ease:'easeOut',
 			effect:'h-slide',
 			speed:0.5,
-			touchmove:true,
-			spec_width:function(){
-				return document.body.offsetWidth;
-			}
+			touchmove:true
 		});
 	});
 	var getWidth = function(){

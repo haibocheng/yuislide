@@ -73,7 +73,7 @@ YUI.add('slide',function(Y){
 				that.fix_for_transition_when_carousel();
 			}
 
-			that.resetSlideSize();
+			that.fixSlideSize();
 
 			return this;
 		},
@@ -177,8 +177,14 @@ YUI.add('slide',function(Y){
             that.animwrap = null;
             if (that.effect == 'none') {
                 that.pannels = con.all('.' + that.contentClass + ' div.' + that.pannelClass);
-				that.pannels.addClass('hidden');
-				that.pannels.item(that.defaultTab).removeClass('hidden');
+				//that.pannels.addClass('hidden');
+				that.pannels.setStyles({
+					display:'none'	
+				});
+				//that.pannels.item(that.defaultTab).removeClass('hidden');
+				that.pannels.item(that.defaultTab).setStyles({
+					'display':'block'	
+				});
             } else if (that.effect == 'v-slide') {
                 that.animwrap = Y.Node.create('<div style="position:absolute;"></div>');
                 that.animwrap.set('innerHTML', that.animcon.get('innerHTML'));
@@ -196,7 +202,6 @@ YUI.add('slide',function(Y){
                     'overflow': 'hidden',
                     'top': -1 * that.defaultTab * animconRegion.height + 'px'
                 });
-				that.renderSize();
             } else if (that.effect == 'h-slide') {
                 that.animwrap = Y.Node.create('<div style="position:absolute;"></div>');
                 that.animwrap.set('innerHTML', that.animcon.get('innerHTML'));
@@ -214,7 +219,6 @@ YUI.add('slide',function(Y){
                     'overflow': 'hidden',
                     'left': -1 * that.defaultTab * animconRegion.width + 'px'
                 });
-				that.renderSize();
             } else if (that.effect == 'fade') {
                 that.pannels = con.all('.' + that.contentClass + ' div.' + that.pannelClass);
                 that.pannels.setStyles({
@@ -223,14 +227,21 @@ YUI.add('slide',function(Y){
                 });
                 that.pannels.each(function(node, i){
                     if (i == that.defaultTab) {
-                        node.removeClass('hidden');
-                        node.setStyle('opacity', 1);
+                        //node.removeClass('hidden');
+                        node.setStyles({
+							'opacity': 1,
+							'display': 'block'
+						});
                     } else {
-                        node.addClass('hidden');
-                        node.setStyle('opacity', 0);
+                        //node.addClass('hidden');
+                        node.setStyles({
+							'opacity':0,
+							'diaplay':'none'	
+						});
                     }
                 });
             }
+			that.fixSlideSize(that.current_tab);
             //添加选中的class
 			that.hightlightNav(that.getWrappedIndex(that.current_tab));
             //是否自动播放
@@ -240,69 +251,87 @@ YUI.add('slide',function(Y){
             return this;
         },
 
-		// 重新渲染slide的尺寸
-		renderSize:function(){
+		// 重新渲染slide的尺寸，
+		// 根据goto到的index索引值渲染当前需要的长度和宽度
+		/*
+		renderSize:function(index){
 			var that = this;
 			//根据父容器的长宽，渲染子容器的长宽
 			if(that.spec_width){
-				that.resetSlideSize();
+				that.resetSlideSize(index);
 			}else{
 				that.renderHeight().renderWidth();
 			}
 			return this;
 		},
+		*/
 
-		// 重新渲染slide的宽度
+		// 重新渲染slide内页(pannels)的宽度
 		renderWidth:function(){
 			var that = this;
+			//有可能animcon没有定义宽度
+			var width = that.animcon.get('region').width;
 			that.pannels.setStyles({
-				width:that.animcon.get('region').width + 'px'
+				width:width + 'px'
 			});
 			return this;
 		},
 		
-		//重新渲染slide的高度
+		//重新渲染slide内页(pannels)的高度
 		renderHeight :function(){
 			var that = this;
+			//有可能animcon没有定义高度
+			var height = that.animcon.get('region').height;
 			that.pannels.setStyles({
-				height:that.animcon.get('region').height + 'px'
+				height:height + 'px'
 			});
 			return this;
 		},
 
 		//根据配置条件修正控件尺寸
-		fixSlideSize:function(){
+		// 重新渲染slide的尺寸，
+		// 根据goto到的index索引值渲染当前需要的长度和宽度
+		fixSlideSize:function(index){
 			var that = this;
-			if(that.adaptive_width){
+			if(that.adaptive_fixed_width){
 				that.renderWidth();
 			}
-			if(that.adaptive_height){
+			if(that.adaptive_fixed_height){
 				that.renderHeight();
 			}
-			if(that.adaptive_size){
-				that.renderSize();
+			if(that.adaptive_fixed_size){
+				that.renderHeight().renderWidth();
 			}
+			that.resetSlideSize(index);
 			return this;
 		},
 
 		//在before_switch和windowResize的时候执行，根据spec_width是否指定，来决定是否重置页面中的适配出来的宽度和高度并赋值
 		// index是goto的目标tab-pannel的索引
+		// 这个函数主要针对横向滚动时各个pannel高度不定的情况
 		resetSlideSize:function(index){
 			var that = this;
 			if(typeof index == 'undefined' || index == null){
 				index = that.current_tab;
 			}
-			if(!that.spec_width || that.effect == 'none' || that.effect == 'fade'){
+			// 如果没有开关，或者没有滑动特效，则退出函数，不支持垂直滑动的情况
+			if(that.effect != 'h-slide'){
 				return;
 			}
-			var width = that.spec_width();
+			//var width = that.spec_width();
+			var width = that.animcon.get('region').width;
 			var height = that.pannels.item(index).get('region').height;
 			that.animcon.setStyles({
 				width:width+'px',
-				height:height+'px'
+				height:height+'px',
+				//强制pannel的内容不超过动画容器的范围
+				overflow:'hidden'
 			});
+			// pannels的高度是不定的，高度是根据内容
+			// 来撑开的因此不能设置高度，而宽度则需要设置
 			that.pannels.setStyles({
-				width:width+'px'	
+				width:width+'px',
+				display:'block'
 			});
 			return this;
 		},
@@ -404,6 +433,13 @@ YUI.add('slide',function(Y){
 
 					//如果检测到是上下滑动，则复位并return
 					if(that.isScrolling){
+						reset();
+						return;
+					}
+
+					//如果滑动物理距离太小，则复位并return
+					//这个是避免将不精确的点击误认为是滑动
+					if(that.touchmove && that.deltaX < 20){
 						reset();
 						return;
 					}
@@ -713,7 +749,7 @@ YUI.add('slide',function(Y){
 			var that = this;
 			//首先高亮显示tab
 			that.hightlightNav(that.getWrappedIndex(index));
-			that.fixSlideSize();
+			that.fixSlideSize(index);
 			if(that.autoSlide){
 				that.stop().play();
 			}
@@ -724,8 +760,14 @@ YUI.add('slide',function(Y){
                 return this;
             }
             if (that.effect == 'none') {
-                that.pannels.addClass('hidden');
-                that.pannels.item(index).removeClass('hidden');
+                //that.pannels.addClass('hidden');
+				that.pannels.setStyles({
+					'display':'none'	
+				});
+                //that.pannels.item(index).removeClass('hidden');
+                that.pannels.item(index).setStyles({
+					'display':'block'	
+				});
             }
             else if (that.effect == 'v-slide') {
                 if (that.anim) {
@@ -802,7 +844,10 @@ YUI.add('slide',function(Y){
                     duration: that.speed
                 });
                 that.anim.on('start', function(){
-                    that.pannels.item(index).removeClass('hidden');
+                    //that.pannels.item(index).removeClass('hidden');
+                    that.pannels.item(index).setStyles({
+						'display':'block'	
+					});
                     that.pannels.item(index).setStyle('opacity', 0);
                     that.pannels.item(_curr).setStyle('zIndex', 1);
                     that.pannels.item(index).setStyle('zIndex', 2);
@@ -811,7 +856,10 @@ YUI.add('slide',function(Y){
                     that.pannels.item(_curr).setStyle('zIndex', 0);
                     that.pannels.item(index).setStyle('zIndex', 1);
                     that.pannels.item(_curr).setStyle('opacity', 0);
-                    that.pannels.item(_curr).addClass('hidden');
+                    //that.pannels.item(_curr).addClass('hidden');
+                    that.pannels.item(_curr).setStyles({
+						'display':'none'	
+					});
                 });
                 that.anim.run();
             }
@@ -842,7 +890,7 @@ YUI.add('slide',function(Y){
 				return;
 			}
 			//发生goto的时候首先判断是否需要整理空间的长宽尺寸
-			that.resetSlideSize(index);
+			//that.renderSize(index);
 			that.switch_to(index);
 		},
 		//自动播放
