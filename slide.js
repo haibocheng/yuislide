@@ -30,7 +30,6 @@
  * <li>adaptive_fixed_width:(boolean) 屏幕是否根据控件的宽度改变重新渲染尺寸，默认为false，主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
  * <li>adaptive_fixed_height:(boolean) 屏幕是否根据控件的高度改变重新渲染尺寸，默认为false,主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
  * <li>adaptive_fixed_size:(boolean) 屏幕是否根据控件的宽度和高度改变重新渲染尺寸，默认为false,主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
- * <li>spec_width:(function) 每次切换都动态计算容器宽度和高度，用于tab-pannel内容不定的场景，是一个函数，返回一个number，默认为false</li>
  * <li>reverse:(boolean) "播放下一个"和"播放上一个"对调，默认为false</li>
  * </ul>
  */
