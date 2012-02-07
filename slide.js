@@ -27,9 +27,10 @@
  * <li>ready:(function) 初始化完成后的回调，参数同switch事件的参数，当前index为0</li>
  * <li>carousel:(boolean) 是否以旋转木马形式播放，默认为false</li>
  * <li>touchmove:(boolean) 是否支持手指滑动，默认为false</li>
- * <li>adaptive_width:(boolean) 屏幕是否根据控件的宽度改变重新渲染尺寸，默认为false</li>
- * <li>adaptive_height:(boolean) 屏幕是否根据控件的高度改变重新渲染尺寸，默认为false</li>
- * <li>adaptive_size:(boolean) 屏幕是否根据控件的宽度和高度改变重新渲染尺寸，默认为false</li>
+ * <li>adaptive_fixed_width:(boolean) 屏幕是否根据控件的宽度改变重新渲染尺寸，默认为false，主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
+ * <li>adaptive_fixed_height:(boolean) 屏幕是否根据控件的高度改变重新渲染尺寸，默认为false,主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
+ * <li>adaptive_fixed_size:(boolean) 屏幕是否根据控件的宽度和高度改变重新渲染尺寸，默认为false,主要在组件定宽高的场景中，保证resize时tab-pannel尺寸正确</li>
+ * <li>spec_width:(function) 每次切换都动态计算容器宽度和高度，用于tab-pannel内容不定的场景，是一个函数，返回一个number，默认为false</li>
  * <li>reverse:(boolean) "播放下一个"和"播放上一个"对调，默认为false</li>
  * </ul>
  */
@@ -71,6 +72,8 @@ YUI.add('slide',function(Y){
 			if(that.carousel){
 				that.fix_for_transition_when_carousel();
 			}
+
+			that.resetSlideSize();
 
 			return this;
 		},
@@ -135,7 +138,9 @@ YUI.add('slide',function(Y){
 		buildEventCenter:function(){
 			var that = this;
 			var EventFactory = function(){
-				this.publish("switch");
+				this.publish("switch");//实际上就是before_switch
+				this.publish("after_switch");//未实现
+				this.publish("before_switch");//未实现
 			};
 			Y.augment(EventFactory, Y.Event.Target);
 			that.EventCenter = new EventFactory();
@@ -239,7 +244,11 @@ YUI.add('slide',function(Y){
 		renderSize:function(){
 			var that = this;
 			//根据父容器的长宽，渲染子容器的长宽
-			that.renderHeight().renderWidth();
+			if(that.spec_width){
+				that.resetSlideSize();
+			}else{
+				that.renderHeight().renderWidth();
+			}
 			return this;
 		},
 
@@ -273,6 +282,28 @@ YUI.add('slide',function(Y){
 			if(that.adaptive_size){
 				that.renderSize();
 			}
+			return this;
+		},
+
+		//在before_switch和windowResize的时候执行，根据spec_width是否指定，来决定是否重置页面中的适配出来的宽度和高度并赋值
+		// index是goto的目标tab-pannel的索引
+		resetSlideSize:function(index){
+			var that = this;
+			if(typeof index == 'undefined' || index == null){
+				index = that.current_tab;
+			}
+			if(!that.spec_width || that.effect == 'none' || that.effect == 'fade'){
+				return;
+			}
+			var width = that.spec_width();
+			var height = that.pannels.item(index).get('region').height;
+			that.animcon.setStyles({
+				width:width+'px',
+				height:height+'px'
+			});
+			that.pannels.setStyles({
+				width:width+'px'	
+			});
 			return this;
 		},
 
@@ -350,37 +381,57 @@ YUI.add('slide',function(Y){
 					that.deltaX = Math.abs(endX - that.startX);//滑过的距离
 					var swipeleft = (Math.abs(endX) < Math.abs(that.startX));//是否是向左滑动
 					var swiperight = !swipeleft;
-					var anti = ( that.is_last() && swipeleft || that.is_first() && swiperight );//判断是否在边界反滑动，true，出现了反滑动，false，正常滑动
+					//判断是否在边界反滑动，true，出现了反滑动，false，正常滑动
+					var anti = that.carousel ? false : ( that.is_last() && swipeleft || that.is_first() && swiperight );
 
-					if(
-							// 支持touchmove，跑马灯效果，任意帧，touchmove足够的距离
-							( that.touchmove && that.carousel && (that.deltaX > width / 3) ) ||
-							// 不支持touchmove，跑马灯
-							( !that.touchmove && that.carousel ) ||
-							// 正常tab，支持touchmove，横向切换
-							( !that.carousel && that.touchmove && that.effect == 'h-slide' && !anti ) || 
-							// 不支持touchmove，不支持跑马灯
-							( !that.touchmove && !that.carousel && !anti) ||
-							//快速手滑
-							( Number(new Date()) - that.startT < 550 )
-						
-						
-						){
 
-							if(swipeleft){//下一帧
-								that.next();
-							}else{//上一帧
-								that.previous();
-							}
-
-					}else{
-						//复位
+					//复位
+					var reset = function(){
 						that.animwrap.setStyles({
 							'-webkit-transition-duration': (Number(that.speed) / 2) + 's',
 							'-webkit-transform':'translate3d('+(-1 * that.current_tab * that.animcon.get('region').width)+'px,0,0)'
 						});
+					};
 
+					//根据手势走向上一个或下一个
+					var goswipe = function(){
+						if(swipeleft){//下一帧
+							that.next();
+						}else{//上一帧
+							that.previous();
+						}
+					};
+
+					//如果检测到是上下滑动，则复位并return
+					if(that.isScrolling){
+						reset();
+						return;
 					}
+
+
+					if(		!anti && (
+								// 支持touchmove，跑马灯效果，任意帧，touchmove足够的距离
+								( that.touchmove && (that.deltaX > width / 3) ) ||
+								// 不支持touchmove，跑马灯
+								( !that.touchmove && that.carousel ) ||
+								// 正常tab，支持touchmove，横向切换
+								( !that.carousel && that.touchmove && that.effect == 'h-slide' ) || 
+								// 不支持touchmove，不支持跑马灯
+								( !that.touchmove && !that.carousel) ||
+								//快速手滑
+								( Number(new Date()) - that.startT < 550 )
+							)
+						
+						){
+
+							//根据根据手滑方向翻到上一页和下一页
+							goswipe();
+
+					}else{
+						//复位
+						reset();
+					}
+
 					if(that.autoSlide){
 						that.play();
 					}
@@ -432,6 +483,11 @@ YUI.add('slide',function(Y){
 			return this;
 
 		},
+		//正交运动
+		quadraturemotion:function(){
+
+
+		},
 		// 构建参数列表
 		buildParam:function(o){
 			var that = this;
@@ -454,9 +510,10 @@ YUI.add('slide',function(Y){
 			that.carousel = (typeof o.carousel == 'undefined' || o.carousel == null)?false:o.carousel;
 			that.reverse = (typeof o.reverse == 'undefined' || o.reverse == null)?false:o.reverse;
 			that.touchmove = (typeof o.touchmove == 'undefined' || o.touchmove == null)?false:o.touchmove;
-			that.adaptive_width = (typeof o.adaptive_width == 'undefined' || o.adaptive_width == null)?false:o.adaptive_width;
-			that.adaptive_height = (typeof o.adaptive_height == 'undefined' || o.adaptive_height == null)?false:o.adaptive_height;
-			that.adaptive_size = (typeof o.adaptive_size == 'undefined' || o.adaptive_size == null)?false:o.adaptive_size;
+			that.adaptive_fixed_width = (typeof o.adaptive_fixed_width == 'undefined' || o.adaptive_fixed_width == null)?false:o.adaptive_fixed_width;
+			that.adaptive_fixed_height = (typeof o.adaptive_fixed_height == 'undefined' || o.adaptive_fixed_height == null)?false:o.adaptive_fixed_height;
+			that.adaptive_fixed_size = (typeof o.adaptive_fixed_size == 'undefined' || o.adaptive_fixed_size == null)?false:o.adaptive_fixed_size;
+			that.spec_width = (typeof o.spec_width == 'undefined' || o.spec_width == null)?false:o.spec_width;
 			that.id = that.id;
 			//构造参数
 			that.tabs = [];
@@ -784,6 +841,8 @@ YUI.add('slide',function(Y){
 			}) == false){
 				return;
 			}
+			//发生goto的时候首先判断是否需要整理空间的长宽尺寸
+			that.resetSlideSize(index);
 			that.switch_to(index);
 		},
 		//自动播放
@@ -809,3 +868,8 @@ YUI.add('slide',function(Y){
 	
 },'',{requires:['node','anim']});
 
+/*
+ * TODO
+ * 	1，测试各个情况的工装状况
+ *
+ * */
